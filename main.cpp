@@ -5,22 +5,22 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <thread>
+#include <chrono>
+#include <cstdio>
+#include <conio.h>
 #ifdef _WIN32
 #define CLEAR "cls"
 #else
 #define CLEAR "clear"
 #endif
-#include <thread>
-#include <chrono>
-#include <cstdio>
-#include <conio.h>
 using std::string;
 using std::vector;
 const string BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 static inline vector<uint8_t> base32_decode(const string &encoded) {
 	vector<uint8_t> result;
 	uint32_t buffer = 0;
-	int bits_left = 0;
+	int32_t bits_left = 0;
 	for(char ch : encoded) {
 		if(ch == '=')
 			break; // 忽略填充
@@ -37,26 +37,26 @@ static inline vector<uint8_t> base32_decode(const string &encoded) {
 	}
 	return result;
 }
-static inline uint32_t rotl32(uint32_t x, int n) {
+static inline uint32_t rotl32(uint32_t x, int32_t n) {
 	return (x << n) | (x >> (32 - n));
 }
 static inline void sha1_block(uint8_t data[64], uint32_t H[5]) {
 	uint32_t W[80] = { 0 };
 	// 1. 将 64 字节转为 16 个 32 位大端字
-	for(int t = 0; t < 16; ++t) {
+	for(uint32_t t = 0; t < 16; ++t) {
 		W[t] = (static_cast<uint32_t>(data[t * 4]) << 24) |
 			(static_cast<uint32_t>(data[t * 4 + 1]) << 16) |
 			(static_cast<uint32_t>(data[t * 4 + 2]) << 8) |
 			static_cast<uint32_t>(data[t * 4 + 3]);
 	}
 	// 2. 扩展
-	for(int t = 16; t < 80; ++t) {
+	for(uint32_t t = 16; t < 80; ++t) {
 		W[t] = rotl32(W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16], 1);
 	}
 	// 3. 初始化工作变量
 	uint32_t a = H[0], b = H[1], c = H[2], d = H[3], e = H[4];
 	// 4. 80 轮主循环
-	for(int t = 0; t < 80; ++t) {
+	for(uint32_t t = 0; t < 80; ++t) {
 		uint32_t f, k;
 		if(t < 20) {
 			f = (b & c) | ((~b) & d);
@@ -111,13 +111,13 @@ static inline vector<uint8_t> sha1(const vector<uint8_t> &input) {
 		std::memset(last, 0, 64);
 	}
 	// 写入长度（大端 8 字节）
-	for(int i = 0; i < 8; ++i) {
+	for(uint32_t i = 0; i < 8; ++i) {
 		last[56 + i] = static_cast<uint8_t>((total_bits >> (56 - 8 * i)) & 0xFF);
 	}
 	sha1_block(last, H);
 	// 输出大端 20 字节
 	vector<uint8_t> out(20);
-	for(long long i = 0ll; i < 5ll; ++i) {
+	for(int64_t i = 0ll; i < 5ll; ++i) {
 		out[i << 2] = static_cast<uint8_t>((H[i] >> 24) & 0xFF);
 		out[(i << 2) + 1] = static_cast<uint8_t>((H[i] >> 16) & 0xFF);
 		out[(i << 2) + 2] = static_cast<uint8_t>((H[i] >> 8) & 0xFF);
@@ -155,7 +155,7 @@ static inline uint32_t generate_totp(const string &secret_base32) {
 	uint64_t counter = static_cast<uint64_t>(std::time(nullptr)) / 30;
 	// 转大端 8 字节
 	uint8_t counter_bytes[8] = { 0 };
-	for(int i = 7; i >= 0; --i) {
+	for(int32_t i = 7; i >= 0; --i) {
 		counter_bytes[i] = static_cast<uint8_t>(counter & 0xFF);
 		counter >>= 8;
 	}
