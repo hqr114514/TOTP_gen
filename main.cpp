@@ -169,7 +169,7 @@ static inline uint32_t generate_totp(const string &secret_base32) {
 	return binary % 1000000;
 }
 int main(int argc, char **argv) {
-	const char *secret = "PXHCAISAOJ4EFVOG";
+	const char *secret = "";
 	try {
 		while(true) {
 			// 1. 生成当前周期的验证码
